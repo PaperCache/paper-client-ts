@@ -36,7 +36,7 @@ export default class PaperClient {
 		return await this.process(sheet);
 	}
 
-	public async set(key: Key, value: Value, ttl: Ttl): Promise<Response> {
+	public async set(key: Key, value: Value, ttl: Ttl = 0): Promise<Response> {
 		let sheet = SheetBuilder.init()
 			.writeU8(3)
 			.writeString(key)
