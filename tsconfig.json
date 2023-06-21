@@ -1,0 +1,34 @@
+{
+	"compilerOptions": {
+		"target": "es2019",
+		"module": "commonjs",
+		"moduleResolution": "node",
+		"lib": [
+			"dom",
+			"es2019",
+			"es2020.promise",
+			"es2020.bigint",
+			"es2020.string"
+		],
+		"rootDir": "./",
+		"outDir": "./build",
+		"strict": true,
+		"esModuleInterop": true,
+		"removeComments": true,
+		"strictPropertyInitialization": true,
+		"resolveJsonModule": true,
+		"jsx": "react",
+		"allowJs": true,
+		"typeRoots": [
+			"./lib/types",
+			"./node_modules/@types"
+		]
+	},
+	"include": [
+		"./*",
+		"./lib/**/*"
+	],
+	"exclude": [
+		"node_modules"
+	]
+}

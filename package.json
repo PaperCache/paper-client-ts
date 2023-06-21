@@ -1,0 +1,23 @@
+{
+  "name": "paper-client-ts",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "devDependencies": {
+    "@types/node": "^20.3.1",
+    "typescript": "^5.1.3"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Paper-Book/paper-client-ts.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/Paper-Book/paper-client-ts/issues"
+  },
+  "homepage": "https://github.com/Paper-Book/paper-client-ts#readme"
+}
