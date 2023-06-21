@@ -1,1 +1,1 @@
-# paper-client-ts
+# paper-client-js

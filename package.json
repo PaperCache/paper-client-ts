@@ -1,23 +1,25 @@
 {
-  "name": "paper-client-ts",
+  "name": "paper-client-js",
   "version": "1.0.0",
   "description": "",
-  "main": "index.js",
+  "main": "./build/lib/paper-client.js",
   "devDependencies": {
     "@types/node": "^20.3.1",
     "typescript": "^5.1.3"
   },
   "scripts": {
+	"ts-watch": "./node_modules/typescript/bin/tsc -w",
+	"ts-build": "./node_modules/typescript/bin/tsc",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/Paper-Book/paper-client-ts.git"
+    "url": "git+https://github.com/Paper-Book/paper-client-js.git"
   },
   "author": "",
   "license": "ISC",
   "bugs": {
-    "url": "https://github.com/Paper-Book/paper-client-ts/issues"
+    "url": "https://github.com/Paper-Book/paper-client-js/issues"
   },
-  "homepage": "https://github.com/Paper-Book/paper-client-ts#readme"
+  "homepage": "https://github.com/Paper-Book/paper-client-js#readme"
 }
