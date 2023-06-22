@@ -102,7 +102,7 @@ export default class PaperClient {
 		let usedSize = await reader.readU64();
 		let totalGets = await reader.readU64();
 		let missRatio = await reader.readF64();
-		let policyId = await reader.readString();
+		let policyIndex = await reader.readU8();
 
 		return {
 			ok,
@@ -111,7 +111,7 @@ export default class PaperClient {
 				usedSize,
 				totalGets,
 				missRatio,
-				policy: getPolicyById(policyId)
+				policy: getPolicyByIndex(policyIndex)
 			}
 		};
 	}
@@ -146,10 +146,10 @@ export enum Policy {
 	MRU = 1,
 }
 
-function getPolicyById(id: string): Policy {
-	switch (id) {
-		case 'lru': return Policy.LRU;
-		case 'mru': return Policy.MRU;
+function getPolicyByIndex(index: number): Policy {
+	switch (index) {
+		case 0: return Policy.LRU;
+		case 1: return Policy.MRU;
 	}
 
 	// TODO
