@@ -52,10 +52,11 @@ export default class SheetReader {
 		return buf.readDoubleLE();
 	}
 
-	public async readString(length: number): Promise<string> {
-		let buf = await this._client.getBuffer(length);
+	public async readString(): Promise<string> {
+		let len = await this.readU32();
+		let buf = await this._client.getBuffer(len);
 
-		if (buf.length < length) {
+		if (buf.length < len) {
 			// TODO
 			throw new Error();
 		}

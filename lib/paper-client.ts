@@ -93,8 +93,7 @@ export default class PaperClient {
 		let ok = await reader.readU8() === OK_VALUE;
 
 		if (!ok) {
-			let len = await reader.readU32();
-			let data = await reader.readString(len);
+			let data = await reader.readString();
 
 			return { ok, data };
 		}
@@ -103,6 +102,7 @@ export default class PaperClient {
 		let usedSize = await reader.readU64();
 		let totalGets = await reader.readU64();
 		let missRatio = await reader.readF64();
+		let policyId = await reader.readString();
 
 		return {
 			ok,
@@ -110,7 +110,8 @@ export default class PaperClient {
 				maxSize,
 				usedSize,
 				totalGets,
-				missRatio
+				missRatio,
+				policy: getPolicyById(policyId)
 			}
 		};
 	}
@@ -120,8 +121,7 @@ export default class PaperClient {
 		let reader = this._client.reader();
 
 		let ok = await reader.readU8() === OK_VALUE;
-		let len = await reader.readU32();
-		let data = await reader.readString(len);
+		let data = await reader.readString();
 
 		return { ok, data };
 	}
@@ -146,6 +146,16 @@ export enum Policy {
 	MRU = 1,
 }
 
+function getPolicyById(id: string): Policy {
+	switch (id) {
+		case 'lru': return Policy.LRU;
+		case 'mru': return Policy.MRU;
+	}
+
+	// TODO
+	throw new Error();
+}
+
 type Response<T = Message> = {
 	ok: boolean;
 	data: T;
@@ -166,6 +176,7 @@ type Stats = {
 	usedSize: number;
 	totalGets: number;
 	missRatio: number;
+	policy: Policy;
 };
 
 type StatsResponse =
