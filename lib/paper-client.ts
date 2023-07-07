@@ -56,7 +56,7 @@ export default class PaperClient {
 		return await this.process(sheet);
 	}
 
-	public async clear(): Promise<Response> {
+	public async wipe(): Promise<Response> {
 		let sheet = SheetBuilder.init()
 			.writeU8(5)
 			.toSheet();
