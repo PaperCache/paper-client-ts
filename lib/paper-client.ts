@@ -103,6 +103,7 @@ export default class PaperClient {
 		let totalGets = await reader.readU64();
 		let missRatio = await reader.readF64();
 		let policyIndex = await reader.readU8();
+		let uptime = await reader.readU64();
 
 		return {
 			ok,
@@ -111,7 +112,8 @@ export default class PaperClient {
 				usedSize,
 				totalGets,
 				missRatio,
-				policy: getPolicyByIndex(policyIndex)
+				policy: getPolicyByIndex(policyIndex),
+				uptime: uptime
 			}
 		};
 	}
@@ -181,6 +183,7 @@ type Stats = {
 	totalGets: number;
 	missRatio: number;
 	policy: Policy;
+	uptime: number;
 };
 
 type StatsResponse =
