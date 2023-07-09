@@ -101,6 +101,8 @@ export default class PaperClient {
 		let maxSize = await reader.readU64();
 		let usedSize = await reader.readU64();
 		let totalGets = await reader.readU64();
+		let totalSets = await reader.readU64();
+		let totalDels = await reader.readU64();
 		let missRatio = await reader.readF64();
 		let policyIndex = await reader.readU8();
 		let uptime = await reader.readU64();
@@ -111,6 +113,8 @@ export default class PaperClient {
 				maxSize,
 				usedSize,
 				totalGets,
+				totalSets,
+				totalDels,
 				missRatio,
 				policy: getPolicyByIndex(policyIndex),
 				uptime: uptime
@@ -180,8 +184,13 @@ type NotOkResponse<T = Message> = {
 type Stats = {
 	maxSize: number;
 	usedSize: number;
+
 	totalGets: number;
+	totalSets: number;
+	totalDels: number;
+
 	missRatio: number;
+
 	policy: Policy;
 	uptime: number;
 };
