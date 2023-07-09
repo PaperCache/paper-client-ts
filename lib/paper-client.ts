@@ -145,17 +145,17 @@ type Message = string;
 
 export enum Policy {
 	LFU = 0,
-	LRU = 1,
-	MRU = 2,
-	FIFO = 3,
+	FIFO = 1,
+	LRU = 2,
+	MRU = 3,
 }
 
 function getPolicyByIndex(index: number): Policy {
 	switch (index) {
 		case 0: return Policy.LFU;
-		case 1: return Policy.LRU;
-		case 2: return Policy.MRU;
-		case 3: return Policy.FIFO;
+		case 1: return Policy.FIFO;
+		case 2: return Policy.LRU;
+		case 3: return Policy.MRU;
 	}
 
 	// TODO
