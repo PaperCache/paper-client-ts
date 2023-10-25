@@ -1,10 +1,17 @@
 import TcpClient from './tcp-client';
 
+const OK_VALUE = 33;
+
 export default class SheetReader {
 	private _client: TcpClient;
 
 	constructor(client: TcpClient) {
 		this._client = client;
+	}
+
+	public async readBoolean(): Promise<boolean> {
+		let byte = await this.readU8();
+		return byte === OK_VALUE;
 	}
 
 	public async readU8(): Promise<number> {

@@ -1,8 +1,5 @@
-import { Socket } from 'net';
 import TcpClient from './tcp-client';
 import SheetBuilder from './sheet-builder';
-
-const OK_VALUE = 33;
 
 export default class PaperClient {
 	private _client: TcpClient;
@@ -56,9 +53,41 @@ export default class PaperClient {
 		return await this.process(sheet);
 	}
 
-	public async wipe(): Promise<Response> {
+	public async has(key: Key): Promise<HasResponse> {
 		let sheet = SheetBuilder.init()
 			.writeU8(5)
+			.writeString(key)
+			.toSheet();
+
+		await this._client.send(sheet);
+		let reader = this._client.reader();
+
+		let ok = await reader.readBoolean();
+
+		if (!ok) {
+			let data = await reader.readString();
+
+			return { ok, data };
+		}
+
+		return {
+			ok,
+			data: await reader.readBoolean(),
+		};
+	}
+
+	public async peek(key: Key): Promise<Response> {
+		let sheet = SheetBuilder.init()
+			.writeU8(6)
+			.writeString(key)
+			.toSheet();
+
+		return await this.process(sheet);
+	}
+
+	public async wipe(): Promise<Response> {
+		let sheet = SheetBuilder.init()
+			.writeU8(7)
 			.toSheet();
 
 		return await this.process(sheet);
@@ -66,7 +95,7 @@ export default class PaperClient {
 
 	public async resize(size: number): Promise<Response> {
 		let sheet = SheetBuilder.init()
-			.writeU8(6)
+			.writeU8(8)
 			.writeU64(size)
 			.toSheet();
 
@@ -75,7 +104,7 @@ export default class PaperClient {
 
 	public async policy(policy: Policy): Promise<Response> {
 		let sheet = SheetBuilder.init()
-			.writeU8(7)
+			.writeU8(9)
 			.writeU8(policy)
 			.toSheet();
 
@@ -84,13 +113,13 @@ export default class PaperClient {
 
 	public async stats(): Promise<StatsResponse> {
 		let sheet = SheetBuilder.init()
-			.writeU8(8)
+			.writeU8(10)
 			.toSheet();
 
 		await this._client.send(sheet);
 		let reader = this._client.reader();
 
-		let ok = await reader.readU8() === OK_VALUE;
+		let ok = await reader.readBoolean();
 
 		if (!ok) {
 			let data = await reader.readString();
@@ -126,7 +155,7 @@ export default class PaperClient {
 		await this._client.send(sheet);
 		let reader = this._client.reader();
 
-		let ok = await reader.readU8() === OK_VALUE;
+		let ok = await reader.readBoolean();
 		let data = await reader.readString();
 
 		return { ok, data };
@@ -194,6 +223,10 @@ type Stats = {
 	policy: Policy;
 	uptime: number;
 };
+
+type HasResponse =
+	OkResponse<boolean> |
+	NotOkResponse;
 
 type StatsResponse =
 	OkResponse<Stats> |

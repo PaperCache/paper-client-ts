@@ -21,7 +21,7 @@ export default class TcpClient {
 	}
 
 	public async send(data: Uint8Array) {
-		return new Promise((resolve, reject) => {
+		return new Promise((resolve) => {
 			this._client.write(data, resolve);
 		});
 	}
@@ -41,7 +41,7 @@ export default class TcpClient {
 		} else {
 			this._bufSize -= maxSize;
 
-			chunk = this._data[0].slice(0, maxSize);
+			chunk = this._data[0].subarray(0, maxSize);
 
 			let modified = Buffer.alloc(this._data[0].length - maxSize);
 			this._data[0].copy(modified, 0, maxSize);
@@ -66,7 +66,7 @@ export default class TcpClient {
 			return buf;
 		}
 
-		return new Promise((resolve, reject) => {
+		return new Promise((resolve) => {
 			const gotChunks = () => {
 				this._client.removeListener('data', handleChunk);
 				return resolve(this.getBuffer(size));
