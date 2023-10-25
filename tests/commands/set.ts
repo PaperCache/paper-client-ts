@@ -2,14 +2,14 @@ import { expect } from '../chai';
 import { client } from '../global';
 
 describe('Set', () => {
-	it('Should set a key without a TTL', async () => {
+	it('Should set an object without a TTL', async () => {
 		let response = await client.set('key', 'value');
 
 		expect(response.ok).to.equal(true);
 		expect(response.data).to.equal('done');
 	});
 
-	it('Should set a key with a TTL', async () => {
+	it('Should set an object with a TTL', async () => {
 		let response = await client.set('key', 'value', 3);
 
 		expect(response.ok).to.equal(true);
