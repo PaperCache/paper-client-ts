@@ -1,6 +1,25 @@
 import TcpClient from './tcp-client';
 import SheetBuilder from './sheet-builder';
 
+enum CommandByte {
+	PING = 0,
+	VERSION = 1,
+
+	GET = 2,
+	SET = 3,
+	DEL = 4,
+
+	HAS = 5,
+	PEEK = 6,
+
+	WIPE = 7,
+
+	RESIZE = 8,
+	POLICY = 9,
+
+	STATS = 10,
+}
+
 export default class PaperClient {
 	private _client: TcpClient;
 
@@ -10,7 +29,7 @@ export default class PaperClient {
 
 	public async ping(): Promise<Response> {
 		let sheet = SheetBuilder.init()
-			.writeU8(0)
+			.writeU8(CommandByte.PING)
 			.toSheet();
 
 		return await this.process(sheet);
@@ -18,7 +37,7 @@ export default class PaperClient {
 
 	public async version(): Promise<Response> {
 		let sheet = SheetBuilder.init()
-			.writeU8(1)
+			.writeU8(CommandByte.VERSION)
 			.toSheet();
 
 		return await this.process(sheet);
@@ -26,7 +45,7 @@ export default class PaperClient {
 
 	public async get(key: Key): Promise<Response<Value>> {
 		let sheet = SheetBuilder.init()
-			.writeU8(2)
+			.writeU8(CommandByte.GET)
 			.writeString(key)
 			.toSheet();
 
@@ -35,7 +54,7 @@ export default class PaperClient {
 
 	public async set(key: Key, value: Value, ttl: Ttl = 0): Promise<Response> {
 		let sheet = SheetBuilder.init()
-			.writeU8(3)
+			.writeU8(CommandByte.SET)
 			.writeString(key)
 			.writeString(value)
 			.writeU32(ttl)
@@ -46,7 +65,7 @@ export default class PaperClient {
 
 	public async del(key: Key): Promise<Response> {
 		let sheet = SheetBuilder.init()
-			.writeU8(4)
+			.writeU8(CommandByte.DEL)
 			.writeString(key)
 			.toSheet();
 
@@ -55,7 +74,7 @@ export default class PaperClient {
 
 	public async has(key: Key): Promise<HasResponse> {
 		let sheet = SheetBuilder.init()
-			.writeU8(5)
+			.writeU8(CommandByte.HAS)
 			.writeString(key)
 			.toSheet();
 
@@ -78,7 +97,7 @@ export default class PaperClient {
 
 	public async peek(key: Key): Promise<Response> {
 		let sheet = SheetBuilder.init()
-			.writeU8(6)
+			.writeU8(CommandByte.PEEK)
 			.writeString(key)
 			.toSheet();
 
@@ -87,7 +106,7 @@ export default class PaperClient {
 
 	public async wipe(): Promise<Response> {
 		let sheet = SheetBuilder.init()
-			.writeU8(7)
+			.writeU8(CommandByte.WIPE)
 			.toSheet();
 
 		return await this.process(sheet);
@@ -95,7 +114,7 @@ export default class PaperClient {
 
 	public async resize(size: number): Promise<Response> {
 		let sheet = SheetBuilder.init()
-			.writeU8(8)
+			.writeU8(CommandByte.RESIZE)
 			.writeU64(size)
 			.toSheet();
 
@@ -104,7 +123,7 @@ export default class PaperClient {
 
 	public async policy(policy: Policy): Promise<Response> {
 		let sheet = SheetBuilder.init()
-			.writeU8(9)
+			.writeU8(CommandByte.POLICY)
 			.writeU8(policy)
 			.toSheet();
 
@@ -113,7 +132,7 @@ export default class PaperClient {
 
 	public async stats(): Promise<StatsResponse> {
 		let sheet = SheetBuilder.init()
-			.writeU8(10)
+			.writeU8(CommandByte.STATS)
 			.toSheet();
 
 		await this._client.send(sheet);
