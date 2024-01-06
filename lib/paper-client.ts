@@ -1,5 +1,6 @@
 import TcpClient from './tcp-client';
 import SheetBuilder from './sheet-builder';
+import PaperError from './error';
 
 enum CommandByte {
 	PING = 0,
@@ -186,7 +187,15 @@ export default class PaperClient {
 
 	public static async connect(host: string, port: number): Promise<PaperClient> {
 		const client = await TcpClient.connect(host, port);
-		return new PaperClient(client);
+
+		let paperClient = new PaperClient(client);
+		let pingResponse = await paperClient.ping();
+
+		if (!pingResponse.ok) {
+			throw new PaperError(PaperError.types.CONNECTION_REFUSED);
+		}
+
+		return paperClient;
 	}
 }
 
@@ -210,8 +219,7 @@ function getPolicyByIndex(index: number): Policy {
 		case 3: return Policy.MRU;
 	}
 
-	// TODO
-	throw new Error();
+	throw new PaperError();
 }
 
 type Response<T = Message> = {

@@ -1,5 +1,6 @@
 import { Socket } from 'net';
 import SheetReader from './sheet-reader';
+import PaperError from './error';
 
 export default class TcpClient {
 	private _client: Socket;
@@ -94,11 +95,8 @@ export default class TcpClient {
 
 			client.connect(port, host);
 
-			client.on('connect', () => {
-				return resolve(new TcpClient(client));
-			});
-
-			client.on('error', reject);
+			client.on('connect', () => resolve(new TcpClient(client)));
+			client.on('error', () => reject(new PaperError(PaperError.types.INVALID_ADDRESS)));
 		});
 	}
 }
