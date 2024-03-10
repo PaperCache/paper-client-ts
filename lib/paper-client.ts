@@ -12,13 +12,14 @@ enum CommandByte {
 
 	HAS = 5,
 	PEEK = 6,
+	TTL = 7,
 
-	WIPE = 7,
+	WIPE = 8,
 
-	RESIZE = 8,
-	POLICY = 9,
+	RESIZE = 9,
+	POLICY = 10,
 
-	STATS = 10,
+	STATS = 11,
 }
 
 export default class PaperClient {
@@ -100,6 +101,16 @@ export default class PaperClient {
 		let sheet = SheetBuilder.init()
 			.writeU8(CommandByte.PEEK)
 			.writeString(key)
+			.toSheet();
+
+		return await this.process(sheet);
+	}
+
+	public async ttl(key: Key, ttl: Ttl = 0): Promise<Response> {
+		let sheet = SheetBuilder.init()
+			.writeU8(CommandByte.TTL)
+			.writeString(key)
+			.writeU32(ttl)
 			.toSheet();
 
 		return await this.process(sheet);
