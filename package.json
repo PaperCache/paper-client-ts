@@ -15,7 +15,7 @@
     "prepare": "./node_modules/typescript/bin/tsc",
     "ts:watch": "./node_modules/typescript/bin/tsc -w",
     "ts:build": "./node_modules/typescript/bin/tsc",
-    "test": "./node_modules/mocha/bin/mocha.js --recursive build/tests/**/*.js"
+    "test": "./node_modules/mocha/bin/mocha.js --recursive build/tests/**/*.js build/tests/*.js"
   },
   "repository": {
     "type": "git",
