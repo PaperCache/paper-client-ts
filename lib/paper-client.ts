@@ -13,13 +13,14 @@ enum CommandByte {
 	HAS = 5,
 	PEEK = 6,
 	TTL = 7,
+	SIZE = 8,
 
-	WIPE = 8,
+	WIPE = 9,
 
-	RESIZE = 9,
-	POLICY = 10,
+	RESIZE = 10,
+	POLICY = 11,
 
-	STATS = 11,
+	STATS = 12,
 }
 
 export default class PaperClient {
@@ -114,6 +115,29 @@ export default class PaperClient {
 			.toSheet();
 
 		return await this.process(sheet);
+	}
+
+	public async size(key: Key): Promise<SizeResponse> {
+		let sheet = SheetBuilder.init()
+			.writeU8(CommandByte.SIZE)
+			.writeString(key)
+			.toSheet();
+
+		await this._client.send(sheet);
+		let reader = this._client.reader();
+
+		let ok = await reader.readBoolean();
+
+		if (!ok) {
+			let data = await reader.readString();
+
+			return { ok, data };
+		}
+
+		return {
+			ok,
+			data: await reader.readU64(),
+		};
 	}
 
 	public async wipe(): Promise<Response> {
@@ -264,6 +288,10 @@ type Stats = {
 
 type HasResponse =
 	OkResponse<boolean> |
+	NotOkResponse;
+
+type SizeResponse =
+	OkResponse<number> |
 	NotOkResponse;
 
 type StatsResponse =
