@@ -8,6 +8,10 @@ export default class PaperPool {
 		this._clients = clients;
 	}
 
+	public async auth(token: string) {
+		await Promise.all(this._clients.map(client => client.auth(token)));
+	}
+
 	public client() {
 		const index = this._index;
 		this._index = (index + 1) % this._clients.length;

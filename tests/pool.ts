@@ -11,4 +11,18 @@ describe('Pool', () => {
 
 		pool.disconnect();
 	});
+
+	it('Should authorize clients', async () => {
+		const pool = await PaperPool.connect('127.0.0.1', 3145, 2);
+
+		const unauthorized_set = await pool.client().set('key', 'value');
+		expect(unauthorized_set.ok).to.equal(false);
+
+		await pool.auth('auth_token');
+
+		const authorized_set = await pool.client().set('key', 'value');
+		expect(authorized_set.ok).to.equal(true);
+
+		pool.disconnect();
+	});
 });

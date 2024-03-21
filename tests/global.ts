@@ -9,5 +9,6 @@ before(async () => {
 after(() => client.disconnect());
 
 beforeEach(async () => {
+	await client.auth('auth_token');
 	await client.wipe();
 });

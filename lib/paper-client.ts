@@ -6,21 +6,23 @@ enum CommandByte {
 	PING = 0,
 	VERSION = 1,
 
-	GET = 2,
-	SET = 3,
-	DEL = 4,
+	AUTH = 2,
 
-	HAS = 5,
-	PEEK = 6,
-	TTL = 7,
-	SIZE = 8,
+	GET = 3,
+	SET = 4,
+	DEL = 5,
 
-	WIPE = 9,
+	HAS = 6,
+	PEEK = 7,
+	TTL = 8,
+	SIZE = 9,
 
-	RESIZE = 10,
-	POLICY = 11,
+	WIPE = 10,
 
-	STATS = 12,
+	RESIZE = 11,
+	POLICY = 12,
+
+	STATS = 13,
 }
 
 export default class PaperClient {
@@ -41,6 +43,15 @@ export default class PaperClient {
 	public async version(): Promise<Response> {
 		let sheet = SheetBuilder.init()
 			.writeU8(CommandByte.VERSION)
+			.toSheet();
+
+		return await this.process(sheet);
+	}
+
+	public async auth(token: string): Promise<Response> {
+		let sheet = SheetBuilder.init()
+			.writeU8(CommandByte.AUTH)
+			.writeString(token)
 			.toSheet();
 
 		return await this.process(sheet);
