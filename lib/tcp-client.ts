@@ -3,15 +3,15 @@ import SheetReader from './sheet-reader';
 import PaperError from './error';
 
 export default class TcpClient {
-	private _client: Socket;
+	private _socket: Socket;
 
 	private _data: Array<Buffer> = [];
 	private _bufSize: number = 0;
 
-	constructor(client: Socket) {
-		this._client = client;
+	constructor(socket: Socket) {
+		this._socket = socket;
 
-		this._client.on('data', (chunk: Buffer) => {
+		this._socket.on('data', (chunk: Buffer) => {
 			this._data.push(chunk);
 			this._bufSize += chunk.length;
 		});
@@ -23,7 +23,7 @@ export default class TcpClient {
 
 	public async send(data: Uint8Array) {
 		return new Promise((resolve) => {
-			this._client.write(data, resolve);
+			this._socket.write(data, resolve);
 		});
 	}
 
@@ -67,11 +67,17 @@ export default class TcpClient {
 			return buf;
 		}
 
-		return new Promise((resolve) => {
+		if (!this._socket.readable || this._socket.closed || this._socket.destroyed) {
+			throw new PaperError(PaperError.types.DISCONNECTED);
+		}
+
+		return new Promise((resolve, reject) => {
 			const gotChunks = () => {
-				this._client.removeListener('data', handleChunk);
+				this._socket.removeListener('data', handleChunk);
+				this._socket.removeListener('timeout', handleTimeout);
+
 				return resolve(this.getBuffer(size));
-			}
+			};
 
 			const handleChunk = (chunk: Buffer) => {
 				initialBufSize += chunk.length;
@@ -79,24 +85,33 @@ export default class TcpClient {
 				if (initialBufSize >= size) {
 					gotChunks();
 				}
-			}
+			};
 
-			this._client.addListener('data', handleChunk);
+			const handleTimeout = () => {
+				this._socket.removeListener('data', handleChunk);
+				this._socket.removeListener('timeout', handleTimeout);
+
+				return reject();
+			};
+
+			this._socket.addListener('data', handleChunk);
+			this._socket.addListener('timeout', handleTimeout);
 		});
 	}
 
 	public disconnect() {
-		this._client.destroy();
+		this._socket.destroy();
 	}
 
 	public static async connect(host: string, port: number): Promise<TcpClient> {
 		return new Promise((resolve, reject) => {
-			const client = new Socket();
+			const socket = new Socket();
 
-			client.connect(port, host);
+			socket.setTimeout(1000);
+			socket.connect(port, host);
 
-			client.on('connect', () => resolve(new TcpClient(client)));
-			client.on('error', () => reject(new PaperError(PaperError.types.INVALID_ADDRESS)));
+			socket.on('connect', () => resolve(new TcpClient(socket)));
+			socket.on('error', () => reject(new PaperError(PaperError.types.INVALID_ADDRESS)));
 		});
 	}
 }

@@ -2,6 +2,8 @@ import TcpClient from './tcp-client';
 import SheetBuilder from './sheet-builder';
 import PaperError from './error';
 
+const MAX_RECONNECT_ATTEMPTS = 3;
+
 enum CommandByte {
 	PING = 0,
 	VERSION = 1,
@@ -26,9 +28,18 @@ enum CommandByte {
 }
 
 export default class PaperClient {
+	private _host: string;
+	private _port: number;
+
+	private _authToken: string = "";
+	private _reconnectAttempts: number = 0;
+
 	private _client: TcpClient;
 
-	constructor(client: TcpClient) {
+	constructor(host: string, port: number, client: TcpClient) {
+		this._host = host;
+		this._port = port;
+
 		this._client = client;
 	}
 
@@ -53,6 +64,8 @@ export default class PaperClient {
 			.writeU8(CommandByte.AUTH)
 			.writeString(token)
 			.toSheet();
+
+		this._authToken = token;
 
 		return await this.process(sheet);
 	}
@@ -92,21 +105,7 @@ export default class PaperClient {
 			.writeString(key)
 			.toSheet();
 
-		await this._client.send(sheet);
-		let reader = this._client.reader();
-
-		let ok = await reader.readBoolean();
-
-		if (!ok) {
-			let data = await reader.readString();
-
-			return { ok, data };
-		}
-
-		return {
-			ok,
-			data: await reader.readBoolean(),
-		};
+		return await this.processHas(sheet);
 	}
 
 	public async peek(key: Key): Promise<Response> {
@@ -134,21 +133,7 @@ export default class PaperClient {
 			.writeString(key)
 			.toSheet();
 
-		await this._client.send(sheet);
-		let reader = this._client.reader();
-
-		let ok = await reader.readBoolean();
-
-		if (!ok) {
-			let data = await reader.readString();
-
-			return { ok, data };
-		}
-
-		return {
-			ok,
-			data: await reader.readU64(),
-		};
+		return await this.processSize(sheet);
 	}
 
 	public async wipe(): Promise<Response> {
@@ -182,59 +167,140 @@ export default class PaperClient {
 			.writeU8(CommandByte.STATS)
 			.toSheet();
 
-		await this._client.send(sheet);
-		let reader = this._client.reader();
-
-		let ok = await reader.readBoolean();
-
-		if (!ok) {
-			let data = await reader.readString();
-
-			return { ok, data };
-		}
-
-		let maxSize = await reader.readU64();
-		let usedSize = await reader.readU64();
-		let totalGets = await reader.readU64();
-		let totalSets = await reader.readU64();
-		let totalDels = await reader.readU64();
-		let missRatio = await reader.readF64();
-		let policyIndex = await reader.readU8();
-		let uptime = await reader.readU64();
-
-		return {
-			ok,
-			data: {
-				maxSize,
-				usedSize,
-				totalGets,
-				totalSets,
-				totalDels,
-				missRatio,
-				policy: getPolicyByIndex(policyIndex),
-				uptime: uptime
-			}
-		};
-	}
-
-	private async process(sheet: Uint8Array): Promise<Response> {
-		await this._client.send(sheet);
-		let reader = this._client.reader();
-
-		let ok = await reader.readBoolean();
-		let data = await reader.readString();
-
-		return { ok, data };
+		return await this.processStats(sheet);
 	}
 
 	public disconnect() {
 		this._client.disconnect();
 	}
 
+	private async reconnect() {
+		this._reconnectAttempts++;
+
+		if (this._reconnectAttempts > MAX_RECONNECT_ATTEMPTS) {
+			throw new PaperError(PaperError.types.CONNECTION_REFUSED);
+		}
+
+		this._client = await TcpClient.connect(this._host, this._port);
+
+		if (this._authToken !== "") {
+			await this.auth(this._authToken);
+		}
+	}
+
+	private async process(sheet: Uint8Array): Promise<Response> {
+		try {
+			await this._client.send(sheet);
+			let reader = this._client.reader();
+
+			let ok = await reader.readBoolean();
+			let data = await reader.readString();
+
+			this._reconnectAttempts = 0;
+			return { ok, data };
+		} catch {
+			await this.reconnect();
+			return this.process(sheet);
+		}
+	}
+
+	private async processHas(sheet: Uint8Array): Promise<HasResponse> {
+		try {
+			await this._client.send(sheet);
+			let reader = this._client.reader();
+
+			let ok = await reader.readBoolean();
+
+			if (!ok) {
+				let data = await reader.readString();
+
+				return { ok, data };
+			}
+
+			this._reconnectAttempts = 0;
+
+			return {
+				ok,
+				data: await reader.readBoolean(),
+			};
+		} catch {
+			await this.reconnect();
+			return this.processHas(sheet);
+		}
+	}
+
+	private async processSize(sheet: Uint8Array): Promise<SizeResponse> {
+		try {
+			await this._client.send(sheet);
+			let reader = this._client.reader();
+
+			let ok = await reader.readBoolean();
+
+			if (!ok) {
+				let data = await reader.readString();
+
+				return { ok, data };
+			}
+
+			this._reconnectAttempts = 0;
+
+			return {
+				ok,
+				data: await reader.readU64(),
+			};
+		} catch {
+			await this.reconnect();
+			return this.processSize(sheet);
+		}
+	}
+
+	private async processStats(sheet: Uint8Array): Promise<StatsResponse> {
+		try {
+			await this._client.send(sheet);
+			let reader = this._client.reader();
+
+			let ok = await reader.readBoolean();
+
+			if (!ok) {
+				let data = await reader.readString();
+
+				return { ok, data };
+			}
+
+			let maxSize = await reader.readU64();
+			let usedSize = await reader.readU64();
+			let totalGets = await reader.readU64();
+			let totalSets = await reader.readU64();
+			let totalDels = await reader.readU64();
+			let missRatio = await reader.readF64();
+			let policyIndex = await reader.readU8();
+			let uptime = await reader.readU64();
+
+			this._reconnectAttempts = 0;
+
+			return {
+				ok,
+				data: {
+					maxSize,
+					usedSize,
+					totalGets,
+					totalSets,
+					totalDels,
+					missRatio,
+					policy: getPolicyByIndex(policyIndex),
+					uptime: uptime
+				}
+			};
+		} catch {
+			await this.reconnect();
+			return this.processStats(sheet);
+		}
+	}
+
 	public static async connect(host: string, port: number): Promise<PaperClient> {
 		const client = await TcpClient.connect(host, port);
 
-		let paperClient = new PaperClient(client);
+		let paperClient = new PaperClient(host, port, client);
 		let pingResponse = await paperClient.ping();
 
 		if (!pingResponse.ok) {
