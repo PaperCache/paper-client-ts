@@ -5,7 +5,7 @@ enum Type {
 	STRING = 'str',
 }
 
-export default class SheetBuilder {
+export class SheetBuilder {
 	private _values: Array<Value> = [];
 
 	public writeU8(value: number): SheetBuilder {

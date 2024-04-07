@@ -1,9 +1,9 @@
-import TcpClient from './tcp-client';
-import PaperError from './error';
+import { TcpClient } from './tcp-client';
+import { PaperError } from './error';
 
 const OK_VALUE = 33;
 
-export default class SheetReader {
+export class SheetReader {
 	private _client: TcpClient;
 
 	constructor(client: TcpClient) {

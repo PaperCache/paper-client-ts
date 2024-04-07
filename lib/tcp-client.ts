@@ -1,8 +1,8 @@
 import { Socket } from 'net';
-import SheetReader from './sheet-reader';
-import PaperError from './error';
+import { SheetReader } from './sheet-reader';
+import { PaperError } from './error';
 
-export default class TcpClient {
+export class TcpClient {
 	private _socket: Socket;
 
 	private _data: Array<Buffer> = [];

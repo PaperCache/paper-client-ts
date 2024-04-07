@@ -1,11 +1,11 @@
 import { expect } from '../chai';
 import { client } from '../global';
-import { Policy } from '../../lib/paper-client';
+import { PaperPolicy } from '../../lib/paper-client';
 
 describe('Policy', () => {
 	it('Should set the cache\'s policy', async () => {
-		const INITIAL_POLICY = Policy.LFU;
-		const UPDATED_POLICY = Policy.LRU;
+		const INITIAL_POLICY = PaperPolicy.LFU;
+		const UPDATED_POLICY = PaperPolicy.LRU;
 
 		let initial = await client.policy(INITIAL_POLICY);
 
@@ -21,7 +21,7 @@ describe('Policy', () => {
 	});
 });
 
-async function getCurrentPolicy(): Promise<Policy> {
+async function getCurrentPolicy(): Promise<PaperPolicy> {
 	let response = await client.stats();
 
 	if (!response.ok) {

@@ -7,7 +7,7 @@ enum ErrorType {
 	INTERNAL,
 }
 
-export default class PaperError extends Error {
+export class PaperError extends Error {
 	public static types: typeof ErrorType = ErrorType;
 
 	constructor(errorType?: ErrorType) {

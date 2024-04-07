@@ -1,5 +1,5 @@
 import { expect } from './chai';
-import PaperClient from './../lib/paper-client';
+import { PaperClient } from './../lib/paper-client';
 
 describe('Reconnect', () => {
 	let client: PaperClient;

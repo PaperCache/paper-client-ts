@@ -1,6 +1,6 @@
-import TcpClient from './tcp-client';
-import SheetBuilder from './sheet-builder';
-import PaperError from './error';
+import { TcpClient } from './tcp-client';
+import { SheetBuilder } from './sheet-builder';
+import { PaperError } from './error';
 
 const MAX_RECONNECT_ATTEMPTS = 3;
 
@@ -27,7 +27,7 @@ enum CommandByte {
 	STATS = 13,
 }
 
-export default class PaperClient {
+export class PaperClient {
 	private _host: string;
 	private _port: number;
 
@@ -153,7 +153,7 @@ export default class PaperClient {
 		return await this.process(sheet);
 	}
 
-	public async policy(policy: Policy): Promise<Response> {
+	public async policy(policy: PaperPolicy): Promise<Response> {
 		let sheet = SheetBuilder.init()
 			.writeU8(CommandByte.POLICY)
 			.writeU8(policy)
@@ -316,19 +316,19 @@ type Value = string;
 type Ttl = number;
 type Message = string;
 
-export enum Policy {
+export enum PaperPolicy {
 	LFU = 0,
 	FIFO = 1,
 	LRU = 2,
 	MRU = 3,
 }
 
-function getPolicyByIndex(index: number): Policy {
+function getPolicyByIndex(index: number): PaperPolicy {
 	switch (index) {
-		case 0: return Policy.LFU;
-		case 1: return Policy.FIFO;
-		case 2: return Policy.LRU;
-		case 3: return Policy.MRU;
+		case 0: return PaperPolicy.LFU;
+		case 1: return PaperPolicy.FIFO;
+		case 2: return PaperPolicy.LRU;
+		case 3: return PaperPolicy.MRU;
 	}
 
 	throw new PaperError();
@@ -359,7 +359,7 @@ type Stats = {
 
 	missRatio: number;
 
-	policy: Policy;
+	policy: PaperPolicy;
 	uptime: number;
 };
 

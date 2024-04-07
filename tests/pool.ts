@@ -1,5 +1,5 @@
 import { expect } from './chai';
-import PaperPool from './../lib/paper-pool';
+import { PaperPool } from './../lib/paper-pool';
 
 describe('Pool', () => {
 	it('Should allow the use of a client', async () => {

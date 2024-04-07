@@ -1,6 +1,6 @@
-import PaperClient from './paper-client';
+import { PaperClient } from './paper-client';
 
-export default class PaperPool {
+export class PaperPool {
 	private _clients: PaperClient[];
 	private _index: number = 0;
 

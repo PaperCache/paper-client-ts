@@ -1,4 +1,4 @@
-import PaperClient from '../lib/paper-client';
+import { PaperClient } from '../lib/paper-client';
 
 export let client: PaperClient;
 
