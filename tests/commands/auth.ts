@@ -4,7 +4,7 @@ import { PaperClient } from '../../lib/paper-client';
 let client: PaperClient;
 
 beforeEach(async () => {
-	client = await PaperClient.connect("127.0.0.1", 3145);
+	client = await PaperClient.connect('paper://127.0.0.1:3145');
 	await client.wipe();
 });
 

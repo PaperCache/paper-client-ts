@@ -103,7 +103,10 @@ export class TcpClient {
 		this._socket.destroy();
 	}
 
-	public static async connect(host: string, port: number): Promise<TcpClient> {
+	public static async connect(addr: string): Promise<TcpClient> {
+		const [host, portStr] = addr.split(':');
+		const port = parseInt(portStr);
+
 		return new Promise((resolve, reject) => {
 			const socket = new Socket();
 

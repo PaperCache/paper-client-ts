@@ -28,18 +28,15 @@ enum CommandByte {
 }
 
 export class PaperClient {
-	private _host: string;
-	private _port: number;
+	private _addr: string;
 
-	private _authToken: string = "";
+	private _authToken: string = '';
 	private _reconnectAttempts: number = 0;
 
 	private _client: TcpClient;
 
-	constructor(host: string, port: number, client: TcpClient) {
-		this._host = host;
-		this._port = port;
-
+	private constructor(addr: string, client: TcpClient) {
+		this._addr = addr;
 		this._client = client;
 	}
 
@@ -181,9 +178,9 @@ export class PaperClient {
 			throw new PaperError(PaperError.types.CONNECTION_REFUSED);
 		}
 
-		this._client = await TcpClient.connect(this._host, this._port);
+		this._client = await TcpClient.connect(this._addr);
 
-		if (this._authToken !== "") {
+		if (this._authToken !== '') {
 			await this.auth(this._authToken);
 		}
 	}
@@ -297,10 +294,11 @@ export class PaperClient {
 		}
 	}
 
-	public static async connect(host: string, port: number): Promise<PaperClient> {
-		const client = await TcpClient.connect(host, port);
+	public static async connect(paperAddr: string): Promise<PaperClient> {
+		const addr = parsePaperAddr(paperAddr);
+		const client = await TcpClient.connect(addr);
 
-		let paperClient = new PaperClient(host, port, client);
+		let paperClient = new PaperClient(addr, client);
 		let pingResponse = await paperClient.ping();
 
 		if (!pingResponse.ok) {
@@ -332,6 +330,14 @@ function getPolicyByIndex(index: number): PaperPolicy {
 	}
 
 	throw new PaperError();
+}
+
+function parsePaperAddr(paperAddr: string): string {
+	if (paperAddr.indexOf('paper://') !== 0) {
+		throw new PaperError(PaperError.types.INVALID_ADDRESS);
+	}
+
+	return paperAddr.replace('paper://', '');
 }
 
 type Response<T = Message> = {

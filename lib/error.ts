@@ -22,15 +22,15 @@ export class PaperError extends Error {
 function getErrorMessage(errorType: ErrorType) {
 	switch (errorType) {
 		case ErrorType.INVALID_ADDRESS:
-			return "Invalid address.";
+			return 'Invalid address.';
 
 		case ErrorType.CONNECTION_REFUSED:
-			return "Connection refused.";
+			return 'Connection refused.';
 
 		case ErrorType.DISCONNECTED:
-			return "Disconnected.";
+			return 'Disconnected.';
 
 		case ErrorType.INTERNAL:
-			return "Internal error.";
+			return 'Internal error.';
 	}
 }

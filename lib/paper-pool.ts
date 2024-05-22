@@ -24,15 +24,11 @@ export class PaperPool {
 		}
 	}
 
-	public static async connect(
-		host: string,
-		port: number,
-		size: number
-	): Promise<PaperPool> {
+	public static async connect(paper_addr: string, size: number): Promise<PaperPool> {
 		let clients: PaperClient[] = [];
 
 		for (let i=0; i<size; i++) {
-			clients.push(await PaperClient.connect(host, port));
+			clients.push(await PaperClient.connect(paper_addr));
 		}
 
 		return new PaperPool(clients);
