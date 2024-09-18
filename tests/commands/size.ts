@@ -7,13 +7,12 @@ describe('Size', () => {
 		let response = await client.size('key');
 
 		expect(response.ok).to.equal(true);
-		expect(response.data).to.equal(5);
+		if (response.ok) expect(response.data).to.equal(5);
 	});
 
 	it('Should return not ok for a key which does not exist', async () => {
 		let response = await client.size('key');
 
 		expect(response.ok).to.equal(false);
-		expect(response.data).to.not.be.empty;
 	});
 });

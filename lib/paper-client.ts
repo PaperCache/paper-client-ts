@@ -40,20 +40,20 @@ export class PaperClient {
 		this._client = client;
 	}
 
-	public async ping(): Promise<Response> {
+	public async ping(): Promise<DataResponse> {
 		let sheet = SheetBuilder.init()
 			.writeU8(CommandByte.PING)
 			.toSheet();
 
-		return await this.process(sheet);
+		return await this.processData(sheet);
 	}
 
-	public async version(): Promise<Response> {
+	public async version(): Promise<DataResponse> {
 		let sheet = SheetBuilder.init()
 			.writeU8(CommandByte.VERSION)
 			.toSheet();
 
-		return await this.process(sheet);
+		return await this.processData(sheet);
 	}
 
 	public async auth(token: string): Promise<Response> {
@@ -67,13 +67,13 @@ export class PaperClient {
 		return await this.process(sheet);
 	}
 
-	public async get(key: Key): Promise<Response<Value>> {
+	public async get(key: Key): Promise<DataResponse> {
 		let sheet = SheetBuilder.init()
 			.writeU8(CommandByte.GET)
 			.writeString(key)
 			.toSheet();
 
-		return await this.process(sheet);
+		return await this.processData(sheet);
 	}
 
 	public async set(key: Key, value: Value, ttl: Ttl = 0): Promise<Response> {
@@ -96,7 +96,7 @@ export class PaperClient {
 		return await this.process(sheet);
 	}
 
-	public async has(key: Key): Promise<HasResponse> {
+	public async has(key: Key): Promise<DataResponse<boolean>> {
 		let sheet = SheetBuilder.init()
 			.writeU8(CommandByte.HAS)
 			.writeString(key)
@@ -105,13 +105,13 @@ export class PaperClient {
 		return await this.processHas(sheet);
 	}
 
-	public async peek(key: Key): Promise<Response> {
+	public async peek(key: Key): Promise<DataResponse> {
 		let sheet = SheetBuilder.init()
 			.writeU8(CommandByte.PEEK)
 			.writeString(key)
 			.toSheet();
 
-		return await this.process(sheet);
+		return await this.processData(sheet);
 	}
 
 	public async ttl(key: Key, ttl: Ttl = 0): Promise<Response> {
@@ -124,7 +124,7 @@ export class PaperClient {
 		return await this.process(sheet);
 	}
 
-	public async size(key: Key): Promise<SizeResponse> {
+	public async size(key: Key): Promise<DataResponse<number>> {
 		let sheet = SheetBuilder.init()
 			.writeU8(CommandByte.SIZE)
 			.writeString(key)
@@ -159,7 +159,7 @@ export class PaperClient {
 		return await this.process(sheet);
 	}
 
-	public async stats(): Promise<StatsResponse> {
+	public async stats(): Promise<DataResponse<Stats>> {
 		let sheet = SheetBuilder.init()
 			.writeU8(CommandByte.STATS)
 			.toSheet();
@@ -180,6 +180,12 @@ export class PaperClient {
 
 		this._client = await TcpClient.connect(this._addr);
 
+		const handshakeResponse = await handshake(this._client);
+
+		if (!handshakeResponse.ok) {
+			throw handshakeResponse.error;
+		}
+
 		if (this._authToken !== '') {
 			await this.auth(this._authToken);
 		}
@@ -190,35 +196,60 @@ export class PaperClient {
 			await this._client.send(sheet);
 			let reader = this._client.reader();
 
-			let ok = await reader.readBoolean();
-			let data = await reader.readString();
-
+			const ok = await reader.readBoolean();
 			this._reconnectAttempts = 0;
-			return { ok, data };
+
+			if (ok) return { ok };
+
+			return {
+				ok: false,
+				error: await PaperError.fromSheet(reader),
+			};
 		} catch {
 			await this.reconnect();
 			return this.process(sheet);
 		}
 	}
 
-	private async processHas(sheet: Uint8Array): Promise<HasResponse> {
+	private async processData(sheet: Uint8Array): Promise<DataResponse> {
 		try {
 			await this._client.send(sheet);
 			let reader = this._client.reader();
 
-			let ok = await reader.readBoolean();
+			const ok = await reader.readBoolean();
+			this._reconnectAttempts = 0;
 
-			if (!ok) {
-				let data = await reader.readString();
-
+			if (ok) {
+				const data = await reader.readString();
 				return { ok, data };
 			}
 
+			return {
+				ok,
+				error: await PaperError.fromSheet(reader),
+			};
+		} catch {
+			await this.reconnect();
+			return this.processData(sheet);
+		}
+	}
+
+	private async processHas(sheet: Uint8Array): Promise<DataResponse<boolean>> {
+		try {
+			await this._client.send(sheet);
+			let reader = this._client.reader();
+
+			const ok = await reader.readBoolean();
 			this._reconnectAttempts = 0;
+
+			if (ok) {
+				const data = await reader.readBoolean();
+				return { ok, data };
+			}
 
 			return {
 				ok,
-				data: await reader.readBoolean(),
+				error: await PaperError.fromSheet(reader),
 			};
 		} catch {
 			await this.reconnect();
@@ -226,24 +257,22 @@ export class PaperClient {
 		}
 	}
 
-	private async processSize(sheet: Uint8Array): Promise<SizeResponse> {
+	private async processSize(sheet: Uint8Array): Promise<DataResponse<number>> {
 		try {
 			await this._client.send(sheet);
 			let reader = this._client.reader();
 
-			let ok = await reader.readBoolean();
+			const ok = await reader.readBoolean();
+			this._reconnectAttempts = 0;
 
-			if (!ok) {
-				let data = await reader.readString();
-
+			if (ok) {
+				const data = await reader.readU64();
 				return { ok, data };
 			}
 
-			this._reconnectAttempts = 0;
-
 			return {
 				ok,
-				data: await reader.readU64(),
+				error: await PaperError.fromSheet(reader),
 			};
 		} catch {
 			await this.reconnect();
@@ -251,29 +280,27 @@ export class PaperClient {
 		}
 	}
 
-	private async processStats(sheet: Uint8Array): Promise<StatsResponse> {
+	private async processStats(sheet: Uint8Array): Promise<DataResponse<Stats>> {
 		try {
 			await this._client.send(sheet);
 			let reader = this._client.reader();
 
-			let ok = await reader.readBoolean();
+			const ok = await reader.readBoolean();
+			this._reconnectAttempts = 0;
 
 			if (!ok) {
-				let data = await reader.readString();
-
-				return { ok, data };
+				const error = await PaperError.fromSheet(reader);
+				return { ok, error };
 			}
 
-			let maxSize = await reader.readU64();
-			let usedSize = await reader.readU64();
-			let totalGets = await reader.readU64();
-			let totalSets = await reader.readU64();
-			let totalDels = await reader.readU64();
-			let missRatio = await reader.readF64();
-			let policyIndex = await reader.readU8();
-			let uptime = await reader.readU64();
-
-			this._reconnectAttempts = 0;
+			const maxSize = await reader.readU64();
+			const usedSize = await reader.readU64();
+			const totalGets = await reader.readU64();
+			const totalSets = await reader.readU64();
+			const totalDels = await reader.readU64();
+			const missRatio = await reader.readF64();
+			const policyIndex = await reader.readU8();
+			const uptime = await reader.readU64();
 
 			return {
 				ok,
@@ -298,12 +325,13 @@ export class PaperClient {
 		const addr = parsePaperAddr(paperAddr);
 		const client = await TcpClient.connect(addr);
 
-		let paperClient = new PaperClient(addr, client);
-		let pingResponse = await paperClient.ping();
+		const handshakeResponse = await handshake(client);
 
-		if (!pingResponse.ok) {
-			throw new PaperError(PaperError.types.CONNECTION_REFUSED);
+		if (!handshakeResponse.ok) {
+			throw handshakeResponse.error;
 		}
+
+		let paperClient = new PaperClient(addr, client);
 
 		return paperClient;
 	}
@@ -340,19 +368,16 @@ function parsePaperAddr(paperAddr: string): string {
 	return paperAddr.replace('paper://', '');
 }
 
-type Response<T = Message> = {
-	ok: boolean;
-	data: T;
-};
+async function handshake(client: TcpClient): Promise<Response> {
+	let reader = client.reader();
 
-type OkResponse<T = Message> = {
-	ok: true;
-	data: T;
-}
+	const ok = await reader.readBoolean();
+	if (ok) return { ok };
 
-type NotOkResponse<T = Message> = {
-	ok: false;
-	data: T;
+	return {
+		ok: false,
+		error: await PaperError.fromSheet(reader),
+	};
 }
 
 type Stats = {
@@ -369,14 +394,18 @@ type Stats = {
 	uptime: number;
 };
 
-type HasResponse =
-	OkResponse<boolean> |
-	NotOkResponse;
+type OkResponse<T = Message> = {
+	ok: true;
+	data: T;
+}
 
-type SizeResponse =
-	OkResponse<number> |
-	NotOkResponse;
+type NotOkResponse = {
+	ok: false;
+	error: PaperError;
+}
 
-type StatsResponse =
-	OkResponse<Stats> |
+type Response = { ok: true } | NotOkResponse;
+
+type DataResponse<T = string> =
+	OkResponse<T> |
 	NotOkResponse;

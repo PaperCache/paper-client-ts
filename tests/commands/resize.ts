@@ -6,16 +6,14 @@ describe('Resize', () => {
 		const INITIAL_SIZE = 10 * Math.pow(1024, 2);
 		const UPDATED_SIZE = 20 * Math.pow(1024, 2);
 
-		let initial = await client.resize(INITIAL_SIZE);
+		const initial = await client.resize(INITIAL_SIZE);
 
 		expect(initial.ok).to.equal(true);
-		expect(initial.data).to.equal('done');
 		expect(await getCurrentSize()).to.equal(INITIAL_SIZE);
 
-		let updated = await client.resize(UPDATED_SIZE);
+		const updated = await client.resize(UPDATED_SIZE);
 
 		expect(updated.ok).to.equal(true);
-		expect(updated.data).to.equal('done');
 		expect(await getCurrentSize()).to.equal(UPDATED_SIZE);
 	});
 });
