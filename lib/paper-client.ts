@@ -266,7 +266,7 @@ export class PaperClient {
 			this._reconnectAttempts = 0;
 
 			if (ok) {
-				const data = await reader.readU64();
+				const data = await reader.readU32();
 				return { ok, data };
 			}
 
