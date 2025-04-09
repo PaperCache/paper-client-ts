@@ -1,5 +1,5 @@
-import { TcpClient } from './tcp-client';
-import { PaperError } from './error';
+import { TcpClient } from "./tcp-client";
+import { PaperError } from "./error";
 
 const OK_VALUE = 33;
 

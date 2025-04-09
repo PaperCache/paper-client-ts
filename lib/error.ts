@@ -1,4 +1,4 @@
-import { SheetReader } from './sheet-reader';
+import { SheetReader } from "./sheet-reader";
 
 enum ErrorType {
 	INTERNAL,
@@ -74,33 +74,33 @@ function typeFromCacheCode(code: number): ErrorType {
 function getErrorMessage(errorType: ErrorType) {
 	switch (errorType) {
 		case ErrorType.INTERNAL:
-			return 'Internal error.';
+			return "Internal error.";
 
 		case ErrorType.INVALID_ADDRESS:
-			return 'Invalid address.';
+			return "Invalid address.";
 
 		case ErrorType.CONNECTION_REFUSED:
-			return 'Connection refused.';
+			return "Connection refused.";
 
 		case ErrorType.MAX_CONNECTIONS_EXCEEDED:
-			return 'Maximum number of connections exceeded.';
+			return "Maximum number of connections exceeded.";
 
 		case ErrorType.UNAUTHORIZED:
-			return 'Unauthorized.';
+			return "Unauthorized.";
 
 		case ErrorType.DISCONNECTED:
-			return 'Disconnected.';
+			return "Disconnected.";
 
 		case ErrorType.KEY_NOT_FOUND:
-			return 'Key not found.';
+			return "Key not found.";
 
 		case ErrorType.ZERO_VALUE_SIZE:
-			return 'Size of value cannot be zero.';
+			return "Size of value cannot be zero.";
 
 		case ErrorType.EXCEEDING_VALUE_SIZE:
-			return 'Size of value cannot exceed cache size.';
+			return "Size of value cannot exceed cache size.";
 
 		case ErrorType.ZERO_CACHE_SIZE:
-			return 'Size of cache cannot be zero.';
+			return "Size of cache cannot be zero.";
 	}
 }

@@ -1,4 +1,4 @@
-import { PaperClient } from './paper-client';
+import { PaperClient } from "./paper-client";
 
 export class PaperPool {
 	private _clients: PaperClient[];

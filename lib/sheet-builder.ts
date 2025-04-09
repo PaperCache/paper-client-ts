@@ -1,8 +1,8 @@
 enum Type {
-	U8 = 'u8',
-	U32 = 'u32',
-	U64 = 'u64',
-	STRING = 'str',
+	U8 = "u8",
+	U32 = "u32",
+	U64 = "u64",
+	STRING = "str",
 }
 
 export class SheetBuilder {

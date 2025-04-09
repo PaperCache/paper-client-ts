@@ -1,6 +1,6 @@
-import { TcpClient } from './tcp-client';
-import { SheetBuilder } from './sheet-builder';
-import { PaperError } from './error';
+import { TcpClient } from "./tcp-client";
+import { SheetBuilder } from "./sheet-builder";
+import { PaperError } from "./error";
 
 const MAX_RECONNECT_ATTEMPTS = 3;
 
@@ -30,7 +30,7 @@ enum CommandByte {
 export class PaperClient {
 	private _addr: string;
 
-	private _authToken: string = '';
+	private _authToken: string = "";
 	private _reconnectAttempts: number = 0;
 
 	private _client: TcpClient;
@@ -150,10 +150,10 @@ export class PaperClient {
 		return await this.process(sheet);
 	}
 
-	public async policy(policy: PaperPolicy): Promise<Response> {
+	public async policy(policyId: string): Promise<Response> {
 		let sheet = SheetBuilder.init()
 			.writeU8(CommandByte.POLICY)
-			.writeU8(policy)
+			.writeString(policyId)
 			.toSheet();
 
 		return await this.process(sheet);
@@ -186,7 +186,7 @@ export class PaperClient {
 			throw handshakeResponse.error;
 		}
 
-		if (this._authToken !== '') {
+		if (this._authToken !== "") {
 			await this.auth(this._authToken);
 		}
 	}
@@ -295,11 +295,16 @@ export class PaperClient {
 
 			const maxSize = await reader.readU64();
 			const usedSize = await reader.readU64();
+
 			const totalGets = await reader.readU64();
 			const totalSets = await reader.readU64();
 			const totalDels = await reader.readU64();
+
 			const missRatio = await reader.readF64();
-			const policyIndex = await reader.readU8();
+
+			const policyId = await reader.readString();
+			const isAutoPolicy = await reader.readBoolean();
+
 			const uptime = await reader.readU64();
 
 			return {
@@ -307,11 +312,16 @@ export class PaperClient {
 				data: {
 					maxSize,
 					usedSize,
+
 					totalGets,
 					totalSets,
 					totalDels,
+
 					missRatio,
-					policy: getPolicyByIndex(policyIndex),
+
+					policyId,
+					isAutoPolicy,
+
 					uptime: uptime
 				}
 			};
@@ -342,30 +352,12 @@ type Value = string;
 type Ttl = number;
 type Message = string;
 
-export enum PaperPolicy {
-	LFU = 0,
-	FIFO = 1,
-	LRU = 2,
-	MRU = 3,
-}
-
-function getPolicyByIndex(index: number): PaperPolicy {
-	switch (index) {
-		case 0: return PaperPolicy.LFU;
-		case 1: return PaperPolicy.FIFO;
-		case 2: return PaperPolicy.LRU;
-		case 3: return PaperPolicy.MRU;
-	}
-
-	throw new PaperError();
-}
-
 function parsePaperAddr(paperAddr: string): string {
-	if (paperAddr.indexOf('paper://') !== 0) {
+	if (paperAddr.indexOf("paper://") !== 0) {
 		throw new PaperError(PaperError.types.INVALID_ADDRESS);
 	}
 
-	return paperAddr.replace('paper://', '');
+	return paperAddr.replace("paper://", "");
 }
 
 async function handshake(client: TcpClient): Promise<Response> {
@@ -390,7 +382,9 @@ type Stats = {
 
 	missRatio: number;
 
-	policy: PaperPolicy;
+	policyId: string;
+	isAutoPolicy: boolean;
+
 	uptime: number;
 };
 

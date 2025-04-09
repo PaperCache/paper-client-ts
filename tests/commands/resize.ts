@@ -1,8 +1,8 @@
-import { expect } from '../chai';
-import { client } from '../global';
+import { expect } from "../chai";
+import { client } from "../global";
 
-describe('Resize', () => {
-	it('Should resize the cache', async () => {
+describe("Resize", () => {
+	it("Should resize the cache", async () => {
 		const INITIAL_SIZE = 10 * Math.pow(1024, 2);
 		const UPDATED_SIZE = 20 * Math.pow(1024, 2);
 

@@ -1,6 +1,6 @@
-import { Socket } from 'net';
-import { SheetReader } from './sheet-reader';
-import { PaperError } from './error';
+import { Socket } from "net";
+import { SheetReader } from "./sheet-reader";
+import { PaperError } from "./error";
 
 export class TcpClient {
 	private _socket: Socket;
@@ -11,7 +11,7 @@ export class TcpClient {
 	constructor(socket: Socket) {
 		this._socket = socket;
 
-		this._socket.on('data', (chunk: Buffer) => {
+		this._socket.on("data", (chunk: Buffer) => {
 			this._data.push(chunk);
 			this._bufSize += chunk.length;
 		});
@@ -73,8 +73,8 @@ export class TcpClient {
 
 		return new Promise((resolve, reject) => {
 			const gotChunks = () => {
-				this._socket.removeListener('data', handleChunk);
-				this._socket.removeListener('timeout', handleTimeout);
+				this._socket.removeListener("data", handleChunk);
+				this._socket.removeListener("timeout", handleTimeout);
 
 				return resolve(this.getBuffer(size));
 			};
@@ -88,14 +88,14 @@ export class TcpClient {
 			};
 
 			const handleTimeout = () => {
-				this._socket.removeListener('data', handleChunk);
-				this._socket.removeListener('timeout', handleTimeout);
+				this._socket.removeListener("data", handleChunk);
+				this._socket.removeListener("timeout", handleTimeout);
 
 				return reject();
 			};
 
-			this._socket.addListener('data', handleChunk);
-			this._socket.addListener('timeout', handleTimeout);
+			this._socket.addListener("data", handleChunk);
+			this._socket.addListener("timeout", handleTimeout);
 		});
 	}
 
@@ -104,7 +104,7 @@ export class TcpClient {
 	}
 
 	public static async connect(addr: string): Promise<TcpClient> {
-		const [host, portStr] = addr.split(':');
+		const [host, portStr] = addr.split(":");
 		const port = parseInt(portStr);
 
 		return new Promise((resolve, reject) => {
@@ -113,8 +113,8 @@ export class TcpClient {
 			socket.setTimeout(1000);
 			socket.connect(port, host);
 
-			socket.on('connect', () => resolve(new TcpClient(socket)));
-			socket.on('error', () => reject(new PaperError(PaperError.types.INVALID_ADDRESS)));
+			socket.on("connect", () => resolve(new TcpClient(socket)));
+			socket.on("error", () => reject(new PaperError(PaperError.types.INVALID_ADDRESS)));
 		});
 	}
 }
