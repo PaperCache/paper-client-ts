@@ -11,6 +11,7 @@ describe("Stats", () => {
 		expect(response.data).to.have.all.keys(
 			"maxSize",
 			"usedSize",
+			"numObjects",
 
 			"totalGets",
 			"totalSets",
@@ -18,6 +19,7 @@ describe("Stats", () => {
 
 			"missRatio",
 
+			"policies",
 			"policyId",
 			"isAutoPolicy",
 

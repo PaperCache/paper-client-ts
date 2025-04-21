@@ -295,12 +295,20 @@ export class PaperClient {
 
 			const maxSize = await reader.readU64();
 			const usedSize = await reader.readU64();
+			const numObjects = await reader.readU64();
 
 			const totalGets = await reader.readU64();
 			const totalSets = await reader.readU64();
 			const totalDels = await reader.readU64();
 
 			const missRatio = await reader.readF64();
+
+			const numPolicies = await reader.readU32();
+			const policies: string[] = [];
+
+			for (let i=0; i<numPolicies; i++) {
+				policies.push(await reader.readString());
+			}
 
 			const policyId = await reader.readString();
 			const isAutoPolicy = await reader.readBoolean();
@@ -312,6 +320,7 @@ export class PaperClient {
 				data: {
 					maxSize,
 					usedSize,
+					numObjects,
 
 					totalGets,
 					totalSets,
@@ -319,6 +328,7 @@ export class PaperClient {
 
 					missRatio,
 
+					policies,
 					policyId,
 					isAutoPolicy,
 
@@ -375,6 +385,7 @@ async function handshake(client: TcpClient): Promise<Response> {
 type Stats = {
 	maxSize: number;
 	usedSize: number;
+	numObjects: number;
 
 	totalGets: number;
 	totalSets: number;
@@ -382,6 +393,7 @@ type Stats = {
 
 	missRatio: number;
 
+	policies: string[];
 	policyId: string;
 	isAutoPolicy: boolean;
 
