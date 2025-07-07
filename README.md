@@ -1,4 +1,4 @@
-# paper-client-js
+# paper-client-ts
 
 The Typescript [PaperCache](https://papercache.io) client. The client supports all commands described in the wire protocol on the homepage.
 
