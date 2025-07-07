@@ -23,6 +23,9 @@ enum ErrorType {
 	EXCEEDING_VALUE_SIZE,
 
 	ZERO_CACHE_SIZE,
+
+	UNCONFIGURED_POLICY,
+	INVALID_POLICY,
 }
 
 export class PaperError extends Error {
@@ -73,6 +76,9 @@ function typeFromCacheCode(code: number): ErrorType {
 		case 3: return ErrorType.EXCEEDING_VALUE_SIZE;
 
 		case 4: return ErrorType.ZERO_CACHE_SIZE;
+
+		case 5: return ErrorType.UNCONFIGURED_POLICY;
+		case 6: return ErrorType.INVALID_POLICY;
 
 		default: return ErrorType.INTERNAL;
 	}
