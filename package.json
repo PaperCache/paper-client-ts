@@ -1,9 +1,10 @@
 {
   "name": "paper-client",
   "version": "1.2.1",
-  "description": "",
+  "description": "The JavaScript/TypeScript PaperCache client",
   "main": "./build/index.js",
   "types": "./build/index.d.js",
+  "keywords": "PaperCache",
   "devDependencies": {
     "@types/chai-as-promised": "^7.1.7",
     "@types/mocha": "^10.0.3",
@@ -20,15 +21,15 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/Paper-Book/paper-client-js.git"
+    "url": "git+https://github.com/PaperCache/paper-client-ts.git"
   },
-  "author": "",
-  "license": "ISC",
+  "author": "Kia Shakiba",
+  "license": "AGPL-3.0",
   "bugs": {
-    "url": "https://github.com/Paper-Book/paper-client-js/issues"
+    "url": "https://github.com/PaperCache/paper-client-ts/issues"
   },
   "files": [
 	  "build/"
   ],
-  "homepage": "https://github.com/Paper-Book/paper-client-js#readme"
+  "homepage": "https://papercache.io"
 }
