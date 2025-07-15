@@ -19,7 +19,7 @@ describe("Resize", () => {
 });
 
 async function getCurrentSize(): Promise<number> {
-	let response = await client.stats();
+	let response = await client.status();
 
 	if (!response.ok) {
 		throw new Error();

@@ -31,7 +31,7 @@ enum CommandByte {
 	RESIZE = 11,
 	POLICY = 12,
 
-	STATS = 13,
+	STATUS = 13,
 }
 
 export class PaperClient {
@@ -157,21 +157,21 @@ export class PaperClient {
 		return await this.process(sheet);
 	}
 
-	public async policy(policyId: string): Promise<Response> {
+	public async policy(policy: string): Promise<Response> {
 		let sheet = SheetBuilder.init()
 			.writeU8(CommandByte.POLICY)
-			.writeString(policyId)
+			.writeString(policy)
 			.toSheet();
 
 		return await this.process(sheet);
 	}
 
-	public async stats(): Promise<DataResponse<Stats>> {
+	public async status(): Promise<DataResponse<Status>> {
 		let sheet = SheetBuilder.init()
-			.writeU8(CommandByte.STATS)
+			.writeU8(CommandByte.STATUS)
 			.toSheet();
 
-		return await this.processStats(sheet);
+		return await this.processStatus(sheet);
 	}
 
 	public disconnect() {
@@ -287,7 +287,7 @@ export class PaperClient {
 		}
 	}
 
-	private async processStats(sheet: Uint8Array): Promise<DataResponse<Stats>> {
+	private async processStatus(sheet: Uint8Array): Promise<DataResponse<Status>> {
 		try {
 			await this._client.send(sheet);
 			let reader = this._client.reader();
@@ -300,9 +300,14 @@ export class PaperClient {
 				return { ok, error };
 			}
 
+			const pid = await reader.readU32();
+
 			const maxSize = await reader.readU64();
 			const usedSize = await reader.readU64();
 			const numObjects = await reader.readU64();
+
+			const rss = await reader.readU64();
+			const hwm = await reader.readU64();
 
 			const totalGets = await reader.readU64();
 			const totalSets = await reader.readU64();
@@ -317,7 +322,7 @@ export class PaperClient {
 				policies.push(await reader.readString());
 			}
 
-			const policyId = await reader.readString();
+			const policy = await reader.readString();
 			const isAutoPolicy = await reader.readBoolean();
 
 			const uptime = await reader.readU64();
@@ -325,9 +330,14 @@ export class PaperClient {
 			return {
 				ok,
 				data: {
+					pid,
+
 					maxSize,
 					usedSize,
 					numObjects,
+
+					rss,
+					hwm,
 
 					totalGets,
 					totalSets,
@@ -336,15 +346,15 @@ export class PaperClient {
 					missRatio,
 
 					policies,
-					policyId,
+					policy,
 					isAutoPolicy,
 
-					uptime: uptime
+					uptime,
 				}
 			};
 		} catch {
 			await this.reconnect();
-			return this.processStats(sheet);
+			return this.processStatus(sheet);
 		}
 	}
 
@@ -389,10 +399,15 @@ async function handshake(client: TcpClient): Promise<Response> {
 	};
 }
 
-type Stats = {
+type Status = {
+	pid: number;
+
 	maxSize: number;
 	usedSize: number;
 	numObjects: number;
+
+	rss: number;
+	hwm: number;
 
 	totalGets: number;
 	totalSets: number;
@@ -401,7 +416,7 @@ type Stats = {
 	missRatio: number;
 
 	policies: string[];
-	policyId: string;
+	policy: string;
 	isAutoPolicy: boolean;
 
 	uptime: number;

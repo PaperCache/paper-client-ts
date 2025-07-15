@@ -8,12 +8,12 @@ describe("Reconnect", () => {
 		client = await PaperClient.connect("paper://127.0.0.1:3145");
 		await client.auth("auth_token");
 
-		const preDisconnect = await client.stats();
+		const preDisconnect = await client.status();
 		expect(preDisconnect.ok).to.equal(true);
 
 		client.disconnect();
 
-		const postDisconnect = await client.stats();
+		const postDisconnect = await client.status();
 		expect(postDisconnect.ok).to.equal(true);
 	}).timeout(5000);
 
